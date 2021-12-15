@@ -384,8 +384,6 @@ export class DataReduction extends Construct {
           resources: [
             this.reducedTripBucket.bucketArn,
             this.reducedTripBucket.arnForObjects('*'),
-            // rawDataBucket.bucketArn,
-            // rawDataBucket.arnForObjects('*')
           ]
         })
       ]),
@@ -459,8 +457,6 @@ export class DataReduction extends Construct {
           resources: [
             this.reducedTripBucket.bucketArn,
             this.reducedTripBucket.arnForObjects('*'),
-            // rawDataBucket.bucketArn,
-            // rawDataBucket.arnForObjects('*')
           ]
         })
       ]),
