@@ -105,7 +105,7 @@ This module introduces a new storage bucket, purposed to store final, individual
 
 * The first time that an end user or fleet manager requests the details of a trip, the _reduced trip_ file is queried, retrieving all records relating to such trip. The [Amazon S3 Select](https://aws.amazon.com/blogs/aws/s3-glacier-select/) feature is used to query the file, only fetching interesting data for each request. The output of this query is stored in the trip aggregation bucket.
 * As the first run of the process has produced an output containing the aggregated trip, subsequent requests for such trip would directly fetch and return the information contained in such file, avoiding querying bulky files every time a request is made, and optimizing the resources consumed for each one.
-
+* 
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
