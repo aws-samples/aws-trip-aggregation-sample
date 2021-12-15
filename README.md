@@ -1,3 +1,5 @@
+**DISCLAIMER: This repository is work in progress. Its contents may change while this disclaimer is present.**
+
 # Trip aggregation sample
 
 Welcome! This repository contains an infrastructure and code sample for the creation of a trip aggregation system to unify telemetry from your different devices as each of their journeys finish. It's purposed to _moving things_ - e.g. cars, freights, mobile phones - although this infrastructure would suit you too for non-moving devices that are used on a session-basis - e.g. drills, industrial machinery, etcetera.
