@@ -29,7 +29,7 @@ The architecture for this sample is built using the [AWS Cloud Development Kit](
 
 ### Preparing the environment
 
-- Install the AWS CDK in your machine: `npm install -g aws-cdk`.
+- Install the AWS CDK in your machine: `npm install -g aws-cdk@2`.
 - Install the typescript node runner: `npm install -g ts-node`.
 - Clone this repository and navigate to its root folder.
 - Install dependencies for the project: `npm install`. This will automatically trigger the installation procedure of all packages in the repository.
