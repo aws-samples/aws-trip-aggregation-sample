@@ -73,8 +73,10 @@ Once you finish your simulations, and if you don't want to continue using this s
 
 ## Architecture
 
-![Trip Aggregation process](static/aws-trip-aggregation.png)
-_Overview of the process._
+<p align="center">
+  <img src="static/aws-trip-aggregation.png" />
+  <i>Overview of the process.</i>
+</p>
 
 The architecture for this project is split into several modules, each of which focuses on handling a discrete part of the aggregation process. These are the available modules and a brief summary of their scope:
 
@@ -90,8 +92,10 @@ Apart from these modules, an extra one is provided for simulating events coming 
 
 This module is responsible for the ingestion of raw telemetry information into the system. Ingested data is stored for further analysis, partitioned by the time each event was transmitted.
 
-![Data Ingestion architecture](static/data-ingestion.png)
-_Architecture for the Data Ingestion module._
+<p align="center">
+  <img src="static/data-ingestion.png" />
+  <i>Architecture for the Data Ingestion module.</i>
+</p>
 
 As devices enter the field and start transmitting records through their configured channels, these events can be relayed to the ingestion module so information is properly partitioned and stored. Partitioned data helps narrowing down further querying processes and optimize the consumption of resources for this and other architecture modules. This module also takes care of data transformation into columnar storage, for further optimization. This module is powered by [Amazon Kinesis Firehose](https://aws.amazon.com/kinesis/data-firehose/).
 
@@ -101,8 +105,10 @@ Firehose will deliver a file containing all incoming records every _one minute_ 
 
 As vehicles progress through their journey, they're continuously transmitting telemetry records, that the [data ingestion](#ingesting-data) module has stored in several files, according to the configured batch settings for the module. These files contain telemetry records for all active devices in a given time span, and this module is responsible for reducing these data into unified trip records that can be queried and analysed individually using other modules.
 
-![Data reduction architecture](static/data-reduction.png)
-_Architecture for the Data Reduction module._
+<p align="center">
+  <img src="static/data-reduction.png" />
+  <i>Architecture for the Data Reduction module.</i>
+</p>
 
 This module is based on an orchestrated process, governed by [AWS Step Functions](https://aws.amazon.com/step-functions/). Upon a new file being delivered by the [data ingestion](#ingesting-data) module, this process is launched, and automatically performs the reduction of all target trips each time.
 
@@ -121,8 +127,10 @@ After Athena has executed all queries and produced the outcomes, the system shou
 
 As the [Data Reduction module](#reducing-data) outputs information on finished trips summary and details, each trip summary record is automatically stored in a DynamoDB table for further usage. This record contains summary data of the trip - e.g. identifiers, duration, anomalies, etcetera - along with a reference to the file - located in S3 - containing the details of such trip. This module exposes the trip information through an API, enabling fleet managers and device owners to seamlessly get information of their trips.
 
-![Trip aggregation architecture](static/trip-aggregation.png)
-_Architecture of Trip Aggregation module._
+<p align="center">
+  <img src="static/trip-aggregation.png" />
+  <i>Architecture of Trip Aggregation module.</i>
+</p>
 
 The [Data reduction module](#reducing-data) has successfully generated trip summaries for all finished trips, which have been automatically stored in the domains of this module. The details of each trip, however, is not stored individually, but rather put in one file containing all records for all finished trips in each query execution. This file is referenced in the trip summary, to help further processes know where to find the records for each particular trip.
 
