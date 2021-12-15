@@ -1,5 +1,11 @@
 **DISCLAIMER: This repository is work in progress. Its contents may change while this disclaimer is present.**
 
+_This disclaimer should be removed upon the finishing of these enhancements:_
+
+- [ ] Automatic creation of Athena tables alongside the rest of infrastructure.
+- [ ] Make the samle region-agnostic, currently there're some hardcoded values to `eu-west-1`.
+- [ ] Include some infrastructure and basic code integrity checks.
+
 # Trip aggregation sample
 
 Welcome! This repository contains an infrastructure and code sample for the creation of a trip aggregation system to unify telemetry from your different devices as each of their journeys finish. It's purposed to _moving things_ - e.g. cars, freights, mobile phones - although this infrastructure would suit you too for non-moving devices that are used on a session-basis - e.g. drills, industrial machinery, etcetera.
@@ -16,10 +22,10 @@ The architecture for this sample is built using the [AWS Cloud Development Kit](
 
 ### Preparing the environment
 
-* Install the AWS CDK in your machine: `npm install -g aws-cdk-lib`.
-* Install the typescript node runner: `npm install -g ts-node`.
-* Clone this repository and navigate to its root folder.
-* Install dependencies for the project: `npm install`. This will automatically trigger the installation procedure of all packages in the repository.
+- Install the AWS CDK in your machine: `npm install -g aws-cdk`.
+- Install the typescript node runner: `npm install -g ts-node`.
+- Clone this repository and navigate to its root folder.
+- Install dependencies for the project: `npm install`. This will automatically trigger the installation procedure of all packages in the repository.
 
 ### Building and delivering the project
 
@@ -47,10 +53,18 @@ Run the simulation with `ts-node index.ts`.
 
 The device simulator uses very simple records to be ingested. This works for running a basic simulation on the architecture and process, but usually its more helpful to tailor the simulation data to the needs of the use case. To tune the simulator to the needs, you'd need to modify two files:
 
-* `records.ts` file, which defines the interface that all event records must comply with.
-* `generator.ts` file governs the simulation and is responsible for generating records, randomizing values, and submitting them.
+- `records.ts` file, which defines the interface that all event records must comply with.
+- `generator.ts` file governs the simulation and is responsible for generating records, randomizing values, and submitting them.
 
 _NOTE: Part of the properties used in the sample simulation interface - e.g. `TripId` - are also used by the infrastructure for partitioning, query execution, and trip aggregation. Modifying the keys of the data contracts would require modifications on the infrastructure for the sample to continue working correctly._
+
+### Cleaning up this sample
+
+Once you finish your simulations, and if you don't want to continue using this sample architecture, you can remove it from your AWS account by executing `cdk destroy` and follow the prompts. **You will need to do these steps prior to run the command:**
+
+- Delete the contents of all buckets used by the sample. You can delete contents through the console or programmatically - i.e. `aws s3 rm --recursive s3://BUCKET_NAME`.
+- Delete the Athena Workgroup named `TripReduction` using the AWS console.
+- Everything should now be ready for infrastructure destroying.
 
 ## Architecture
 
@@ -58,9 +72,9 @@ _NOTE: Part of the properties used in the sample simulation interface - e.g. `Tr
 
 The architecture for this project is split into several modules, each of which focuses on handling a discrete part of the aggregation process. These are the available modules and a brief summary of their scope:
 
-* [**Data ingestion**](#ingesting-data): Data ingestion focuses on the reception of incoming telemetry events from all active devices, and its storage for posterior analysis.
-* **Data reduction**: As devices finish their trips, this module handles the unification of all telemetry information from all finished trips in a given time span, and the storage of each trip records reduced by trip.
-* **Trip aggregation**: This module is responsible for individualizing each finished trip, creating trip references that can be queried by device users or fleet managers.
+- [**Data ingestion**](#ingesting-data): Data ingestion focuses on the reception of incoming telemetry events from all active devices, and its storage for posterior analysis.
+- **Data reduction**: As devices finish their trips, this module handles the unification of all telemetry information from all finished trips in a given time span, and the storage of each trip records reduced by trip.
+- **Trip aggregation**: This module is responsible for individualizing each finished trip, creating trip references that can be queried by device users or fleet managers.
 
 The full infrastructure for this project is Serverless, and based on AWS managed services. The operational overhead for managing this architecture should be minimal.
 
@@ -88,10 +102,10 @@ As vehicles are involved in active trips, data is being continuously ingested. T
 
 This module leverages [Amazon Athena](https://aws.amazon.com/athena) for unifying trip records and generating the reduced outcome. Upon each new file delivered, the orchestration of this process is as follows:
 
-* The data for the configured Athena Table is updated, so all potential new partitions are taken into account. This is a necessary step as data is queried continuously as new records are stored.
-* The system executes two queries in parallel, to generate the reduced outcomes with all trip information:
-  * A trip summary record is generated. This summary contains general information about the trip, such as duration, telemetry record availability, and so on. This information will be used later on for querying trip information.
-  * A _finished trips_ file is generated, containing reduced records for all trips finished in the given time span. These records are stored together in one file, as the query output from Amazon Athena.
+- The data for the configured Athena Table is updated, so all potential new partitions are taken into account. This is a necessary step as data is queried continuously as new records are stored.
+- The system executes two queries in parallel, to generate the reduced outcomes with all trip information:
+  - A trip summary record is generated. This summary contains general information about the trip, such as duration, telemetry record availability, and so on. This information will be used later on for querying trip information.
+  - A _finished trips_ file is generated, containing reduced records for all trips finished in the given time span. These records are stored together in one file, as the query output from Amazon Athena.
 
 After Athena has executed all queries and produced the outcomes, the system should've successfully identified all finished trips in that time frame, and stored all their reduced information, and trip summaries. This data is thereafter recorded in a [Amazon DynamoDB](https://aws.amazon.com/dynamodb) table, including trip summary information, and a reference to the file containing the reduced records for each trip. This table is part of the [Trip Aggregation module](#aggregating-trips), documented below.
 
@@ -105,9 +119,9 @@ The [Data reduction module](#reducing-data) has successfully generated trip summ
 
 This module introduces a new storage bucket, purposed to store final, individual information of each trip, so further access is easier and doesn't involve reading a - potentially huge - reduced trip file containing records for thousands of other trips. To reduce spikes and potential throttles on trip aggregation, this individualization activity is executed on demand, on the fly:
 
-* The first time that an end user or fleet manager requests the details of a trip, the _reduced trip_ file is queried, retrieving all records relating to such trip. The [Amazon S3 Select](https://aws.amazon.com/blogs/aws/s3-glacier-select/) feature is used to query the file, only fetching interesting data for each request. The output of this query is stored in the trip aggregation bucket.
-* As the first run of the process has produced an output containing the aggregated trip, subsequent requests for such trip would directly fetch and return the information contained in such file, avoiding querying bulky files every time a request is made, and optimizing the resources consumed for each one.
-* 
+- The first time that an end user or fleet manager requests the details of a trip, the _reduced trip_ file is queried, retrieving all records relating to such trip. The [Amazon S3 Select](https://aws.amazon.com/blogs/aws/s3-glacier-select/) feature is used to query the file, only fetching interesting data for each request. The output of this query is stored in the trip aggregation bucket.
+- As the first run of the process has produced an output containing the aggregated trip, subsequent requests for such trip would directly fetch and return the information contained in such file, avoiding querying bulky files every time a request is made, and optimizing the resources consumed for each one.
+
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.

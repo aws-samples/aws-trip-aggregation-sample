@@ -6,11 +6,12 @@ import { SfnStateMachine } from 'aws-cdk-lib/aws-events-targets';
 import { PolicyStatement, PolicyStatementProps, ArnPrincipal, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Function, AssetCode, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
 import { IChainable, StateMachine, StateMachineType, JsonPath, LogLevel, IntegrationPattern, Parallel } from 'aws-cdk-lib/aws-stepfunctions';
 import { AthenaStartQueryExecution, LambdaInvoke } from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import { Construct } from 'constructs';
 import { CfnWorkGroup } from 'aws-cdk-lib/aws-athena';
+import { AwsCustomResource, AwsCustomResourcePolicy, AwsSdkCall, PhysicalResourceId } from 'aws-cdk-lib/custom-resources';
 
 export interface DataReductionProps {
   RawDataBucketArn: string;
@@ -99,11 +100,15 @@ export class DataReduction extends Construct {
       }
     });
 
+    // Create Athena resources
+    this.createAthenaResources(props, rawDataBucket);
+
     // Create trail to listen to events
     this.tripDataTrail = new Trail(this, 'TripDataTrail', {
       includeGlobalServiceEvents: false,
       isMultiRegionTrail: false,
-      
+      bucket: this.reducedTripBucket,
+      s3KeyPrefix: 'logs/'
     });
 
     this.tripDataTrail.addS3EventSelector([
@@ -326,5 +331,147 @@ export class DataReduction extends Construct {
     this.tripReductionStartRule.addTarget(new SfnStateMachine(this.tripReductionStateMachine, {
       role: ruleRole
     }));
+  }
+
+  private createAthenaResources (props: DataReductionProps, rawDataBucket: IBucket) {
+
+    // Query base parameters
+    const queryBaseParameters: AwsSdkCall = {
+      service: 'Athena',
+      action: 'startQueryExecution',
+      physicalResourceId: PhysicalResourceId.of(`${this.tripReductionWorkGroup.ref}_initialization`)
+    }
+
+    // Create athena database
+    const createDatabaseCall: AwsSdkCall = {
+      ...queryBaseParameters,
+      parameters: {
+        QueryString: `create database ${props.AthenaDatabaseName}`,
+        WorkGroup: this.tripReductionWorkGroup.ref
+      }
+    };
+
+    // Delete athena database
+    const deleteDatabaseCall: AwsSdkCall = {
+      ...queryBaseParameters,
+      parameters: {
+        QueryString: `drop database ${props.AthenaDatabaseName}`,
+        WorkGroup: this.tripReductionWorkGroup.ref
+      }
+    };
+
+    const athenaDbResource: AwsCustomResource = new AwsCustomResource(this, `AthenaDB`, {
+      policy: AwsCustomResourcePolicy.fromStatements([
+        new PolicyStatement({
+          actions: [
+            'athena:StartQueryExecution'
+          ],
+          resources: [
+            '*'
+          ]
+        }),
+        new PolicyStatement({
+          actions: [
+            "s3:GetBucketLocation",
+            "s3:GetObject",
+            "s3:ListBucket",
+            "s3:ListBucketMultipartUploads",
+            "s3:ListMultipartUploadParts",
+            "s3:AbortMultipartUpload",
+            "s3:CreateBucket",
+            "s3:PutObject"
+          ],
+          resources: [
+            this.reducedTripBucket.bucketArn,
+            this.reducedTripBucket.arnForObjects('*'),
+            // rawDataBucket.bucketArn,
+            // rawDataBucket.arnForObjects('*')
+          ]
+        })
+      ]),
+      onCreate: createDatabaseCall,
+      onDelete: deleteDatabaseCall
+    });
+
+    // Create athena table
+    const createTableCall: AwsSdkCall = {
+      ...queryBaseParameters,
+      parameters: {
+        QueryString: `
+        CREATE EXTERNAL TABLE \`${props.AthenaTableName}\`(
+          \`eventid\` string, 
+          \`tripid\` string, 
+          \`deviceid\` string, 
+          \`eventtime\` int, 
+          \`eventtype\` string)
+        PARTITIONED BY ( 
+          \`year\` string, 
+          \`month\` string, 
+          \`day\` string, 
+          \`hour\` string,
+          \`minute\` string)
+        ROW FORMAT SERDE 
+          'org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe' 
+        STORED AS INPUTFORMAT 
+          'org.apache.hadoop.mapred.TextInputFormat' 
+        OUTPUTFORMAT 
+          'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
+        LOCATION
+          's3://${rawDataBucket.bucketName}/raw/'
+        TBLPROPERTIES (
+          'has_encrypted_data'='false', 
+          'transient_lastDdlTime'='1637618754')
+        `,
+        WorkGroup: this.tripReductionWorkGroup.ref
+      }
+    };
+
+    // Delete athena table
+    const deleteTableCall: AwsSdkCall = {
+      ...queryBaseParameters,
+      parameters: {
+        QueryString: `drop table ${props.AthenaTableName}`,
+        WorkGroup: this.tripReductionWorkGroup.ref
+      }
+    };
+
+    const athenaTableResource: AwsCustomResource = new AwsCustomResource(this, `AthenaTable`, {
+      policy: AwsCustomResourcePolicy.fromStatements([
+        new PolicyStatement({
+          actions: [
+            'athena:StartQueryExecution'
+          ],
+          resources: [
+            '*'
+          ]
+        }),
+        new PolicyStatement({
+          actions: [
+            "s3:GetBucketLocation",
+            "s3:GetObject",
+            "s3:ListBucket",
+            "s3:ListBucketMultipartUploads",
+            "s3:ListMultipartUploadParts",
+            "s3:AbortMultipartUpload",
+            "s3:CreateBucket",
+            "s3:PutObject"
+          ],
+          resources: [
+            this.reducedTripBucket.bucketArn,
+            this.reducedTripBucket.arnForObjects('*'),
+            // rawDataBucket.bucketArn,
+            // rawDataBucket.arnForObjects('*')
+          ]
+        })
+      ]),
+      onCreate: createTableCall,
+      onDelete: deleteTableCall
+    });
+
+    // Add dependencies to ensure things are created in order
+    [athenaDbResource, athenaTableResource].forEach(resource => {
+      resource.node.addDependency(this.tripReductionWorkGroup);
+      resource.node.addDependency(this.reducedTripBucket);
+    })
   }
 }

@@ -33,7 +33,7 @@ export class TripAggregationSampleStack extends Stack {
 
     // Initialize data reduction
     this.dataReductionConstruct = new DataReduction(this, 'DataReduction', {
-      AthenaDatabaseName: 'devax_demos',
+      AthenaDatabaseName: 'trip_aggregation_sample',
       AthenaTableName: 'aggregated_trips',
       RawDataBucketArn: this.dataIngestionConstruct.destinationBucket.bucketArn,
     });
@@ -43,9 +43,6 @@ export class TripAggregationSampleStack extends Stack {
       ReducedTripDataBucketName: this.dataReductionConstruct.reducedTripBucket.bucketName,
       TripSummariesTableArn: this.dataReductionConstruct.tripSummaryTable.tableArn
     });
-
-    // Tag this deployment to control consumption of your sample executions granularly
-    Tags.of(this).add('deployment', '2021-11-30 12:00');
 
     // Output variables to use later
     new CfnOutput(this, 'DeliveryStreamName', { value: this.dataIngestionConstruct.deliveryStream.ref });
