@@ -8,6 +8,8 @@ _This disclaimer should be removed upon the finishing of these enhancements:_
 
 # Trip aggregation sample
 
+![Broad architectural diagram](static/architecture-main.png)
+
 Welcome! This repository contains an infrastructure and code sample for the creation of a trip aggregation system to unify telemetry from your different devices as each of their journeys finish. It's purposed to _moving things_ - e.g. cars, freights, mobile phones - although this infrastructure would suit you too for non-moving devices that are used on a session-basis - e.g. drills, industrial machinery, etcetera.
 
 _NOTE: The architecture of this repository uses general-purpose data streaming and aggregation techniques, which provides a cost-effective approach for batch data ingestion and processing, that can be helpful when the initial telemetry transmission channels are already set - outside of the scope of this repository's content. Some middleware shall be used for ultimate ingestion. For solutions where the devices are new in the field, where their firmware could be easily modified, or when no middleware ingestion batching mechanism is available, an [AWS Iot](https://aws.amazon.com/iot-core/) ingestion channel is recommended._
