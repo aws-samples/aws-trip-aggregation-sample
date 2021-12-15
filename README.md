@@ -9,7 +9,7 @@ _This disclaimer should be removed upon the finishing of these enhancements:_
 # Trip aggregation sample
 
 <p align="center">
-  <img src="static/architecture-main.png" />
+  <img style="display:block" src="static/architecture-main.png" />
   <i>Broad architecture of this sample.</i>
 </p>
 
@@ -74,7 +74,7 @@ Once you finish your simulations, and if you don't want to continue using this s
 ## Architecture
 
 <p align="center">
-  <img src="static/aws-trip-aggregation.png" />
+  <img style="display:block" src="static/aws-trip-aggregation.png" />
   <i>Overview of the process.</i>
 </p>
 
@@ -93,7 +93,7 @@ Apart from these modules, an extra one is provided for simulating events coming 
 This module is responsible for the ingestion of raw telemetry information into the system. Ingested data is stored for further analysis, partitioned by the time each event was transmitted.
 
 <p align="center">
-  <img src="static/data-ingestion.png" />
+  <img style="display:block" src="static/data-ingestion.png" />
   <i>Architecture for the Data Ingestion module.</i>
 </p>
 
@@ -106,7 +106,7 @@ Firehose will deliver a file containing all incoming records every _one minute_ 
 As vehicles progress through their journey, they're continuously transmitting telemetry records, that the [data ingestion](#ingesting-data) module has stored in several files, according to the configured batch settings for the module. These files contain telemetry records for all active devices in a given time span, and this module is responsible for reducing these data into unified trip records that can be queried and analysed individually using other modules.
 
 <p align="center">
-  <img src="static/data-reduction.png" />
+  <img style="display:block" src="static/data-reduction.png" />
   <i>Architecture for the Data Reduction module.</i>
 </p>
 
@@ -128,7 +128,7 @@ After Athena has executed all queries and produced the outcomes, the system shou
 As the [Data Reduction module](#reducing-data) outputs information on finished trips summary and details, each trip summary record is automatically stored in a DynamoDB table for further usage. This record contains summary data of the trip - e.g. identifiers, duration, anomalies, etcetera - along with a reference to the file - located in S3 - containing the details of such trip. This module exposes the trip information through an API, enabling fleet managers and device owners to seamlessly get information of their trips.
 
 <p align="center">
-  <img src="static/trip-aggregation.png" />
+  <img style="display:block" src="static/trip-aggregation.png" />
   <i>Architecture of Trip Aggregation module.</i>
 </p>
 
