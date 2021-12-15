@@ -2,7 +2,7 @@
 
 _This disclaimer should be removed upon the finishing of these enhancements:_
 
-- [ ] Automatic creation of Athena tables alongside the rest of infrastructure.
+- [x] Automatic creation of Athena tables alongside the rest of infrastructure.
 - [ ] Make the samle region-agnostic, currently there're some hardcoded values to `eu-west-1`.
 - [ ] Include some infrastructure and basic code integrity checks.
 
