@@ -10,6 +10,8 @@ _This disclaimer should be removed upon the finishing of these enhancements:_
 
 <p align="center">
   <img style="display:block" src="static/architecture-main.png" />
+</p>
+<p align="center">
   <i>Broad architecture of this sample.</i>
 </p>
 
@@ -75,6 +77,8 @@ Once you finish your simulations, and if you don't want to continue using this s
 
 <p align="center">
   <img style="display:block" src="static/aws-trip-aggregation.png" />
+</p>
+<p align="center">
   <i>Overview of the process.</i>
 </p>
 
@@ -94,6 +98,8 @@ This module is responsible for the ingestion of raw telemetry information into t
 
 <p align="center">
   <img style="display:block" src="static/data-ingestion.png" />
+</p>
+<p align="center">
   <i>Architecture for the Data Ingestion module.</i>
 </p>
 
@@ -107,6 +113,8 @@ As vehicles progress through their journey, they're continuously transmitting te
 
 <p align="center">
   <img style="display:block" src="static/data-reduction.png" />
+</p>
+<p align="center">
   <i>Architecture for the Data Reduction module.</i>
 </p>
 
@@ -129,6 +137,8 @@ As the [Data Reduction module](#reducing-data) outputs information on finished t
 
 <p align="center">
   <img style="display:block" src="static/trip-aggregation.png" />
+</p>
+<p align="center">
   <i>Architecture of Trip Aggregation module.</i>
 </p>
 
