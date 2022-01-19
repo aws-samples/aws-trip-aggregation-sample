@@ -5,13 +5,11 @@
     "trip-aggregation-sample": "bin/trip-aggregation-sample.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "lerna exec --no-bail -- npm run build",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "postinstall": "lerna bootstrap",
-    "pre:deploy": "lerna exec --no-bail -- npm run build",
-    "deploy": "npm run pre:deploy && cdk deploy"
+    "postinstall": "lerna exec -- npm i"
   },
   "devDependencies": {
     "@types/jest": "^26.0.10",
