@@ -104,19 +104,19 @@ export class DataReduction extends Construct {
     this.createAthenaResources(props, rawDataBucket);
 
     // Create trail to listen to events
-    this.tripDataTrail = new Trail(this, 'TripDataTrail', {
-      includeGlobalServiceEvents: false,
-      isMultiRegionTrail: false,
-    });
+    // this.tripDataTrail = new Trail(this, 'TripDataTrail', {
+    //   includeGlobalServiceEvents: false,
+    //   isMultiRegionTrail: false,
+    // });
 
-    this.tripDataTrail.addS3EventSelector([
-      {
-        bucket: rawDataBucket,
-      }
-    ], {
-      includeManagementEvents: false,
-      readWriteType: ReadWriteType.WRITE_ONLY
-    });
+    // this.tripDataTrail.addS3EventSelector([
+    //   {
+    //     bucket: rawDataBucket,
+    //   }
+    // ], {
+    //   includeManagementEvents: false,
+    //   readWriteType: ReadWriteType.WRITE_ONLY
+    // });
 
     // Create trip summaries table
     this.tripSummaryTable = new Table(this, 'TripSummariesTable', {

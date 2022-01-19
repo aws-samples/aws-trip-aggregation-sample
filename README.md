@@ -3,6 +3,7 @@
 _This disclaimer should be removed upon the finishing of these enhancements:_
 
 - [x] Automatic creation of Athena tables alongside the rest of infrastructure.
+- [ ] Fix race-condition on CloudTrail trail in infrastructure first creation.
 - [ ] Make the samle region-agnostic, currently there're some hardcoded values to `eu-west-1`.
 - [ ] Include some infrastructure tests and basic code integrity checks.
 
@@ -33,6 +34,31 @@ The architecture for this sample is built using the [AWS Cloud Development Kit](
 - Install the typescript node runner: `npm install -g ts-node`.
 - Clone this repository and navigate to its root folder.
 - Install dependencies for the project: `npm install`. This will automatically trigger the installation procedure of all packages in the repository.
+
+#### Note: Configuring the trail
+
+Part of this solution relies on AWS CloudTrail events to automate their execution. The current infrastructure assumes you already have defined a trail listening to S3 object events. If you haven't, uncomment the following lines **after you've first deployed the infrastructure**, and deploy it again.
+
+```ts
+// lib/data-reduction.ts
+// Line 107
+
+// this.tripDataTrail = new Trail(this, 'TripDataTrail', {
+//   includeGlobalServiceEvents: false,
+//   isMultiRegionTrail: false,
+// });
+
+// this.tripDataTrail.addS3EventSelector([
+//   {
+//     bucket: rawDataBucket,
+//   }
+// ], {
+//   includeManagementEvents: false,
+//   readWriteType: ReadWriteType.WRITE_ONLY
+// });
+```
+
+If you do have an existing trail and create another one, the aggregation logic will run more than once every time a new raw data file is stored in the ingestion bucket.
 
 ### Building and delivering the project
 
