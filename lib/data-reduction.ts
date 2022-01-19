@@ -107,8 +107,6 @@ export class DataReduction extends Construct {
     this.tripDataTrail = new Trail(this, 'TripDataTrail', {
       includeGlobalServiceEvents: false,
       isMultiRegionTrail: false,
-      bucket: this.reducedTripBucket,
-      s3KeyPrefix: 'logs/'
     });
 
     this.tripDataTrail.addS3EventSelector([
@@ -339,12 +337,12 @@ export class DataReduction extends Construct {
     const queryBaseParameters: AwsSdkCall = {
       service: 'Athena',
       action: 'startQueryExecution',
-      physicalResourceId: PhysicalResourceId.of(`${this.tripReductionWorkGroup.ref}_initialization`)
     }
 
     // Create athena database
     const createDatabaseCall: AwsSdkCall = {
       ...queryBaseParameters,
+      physicalResourceId: PhysicalResourceId.of(`${this.tripReductionWorkGroup.ref}_DB`),
       parameters: {
         QueryString: `create database ${props.AthenaDatabaseName}`,
         WorkGroup: this.tripReductionWorkGroup.ref
@@ -354,6 +352,7 @@ export class DataReduction extends Construct {
     // Delete athena database
     const deleteDatabaseCall: AwsSdkCall = {
       ...queryBaseParameters,
+      physicalResourceId: PhysicalResourceId.of(`${this.tripReductionWorkGroup.ref}_DB`),
       parameters: {
         QueryString: `drop database ${props.AthenaDatabaseName}`,
         WorkGroup: this.tripReductionWorkGroup.ref
@@ -369,6 +368,10 @@ export class DataReduction extends Construct {
           resources: [
             '*'
           ]
+        }),
+        new PolicyStatement({
+          actions: ['glue:*'],
+          resources: ['*']
         }),
         new PolicyStatement({
           actions: [
@@ -394,9 +397,10 @@ export class DataReduction extends Construct {
     // Create athena table
     const createTableCall: AwsSdkCall = {
       ...queryBaseParameters,
+      physicalResourceId: PhysicalResourceId.of(`${this.tripReductionWorkGroup.ref}_Table`),
       parameters: {
         QueryString: `
-        CREATE EXTERNAL TABLE \`${props.AthenaTableName}\`(
+        CREATE EXTERNAL TABLE \`${props.AthenaDatabaseName}\`.\`${props.AthenaTableName}\`(
           \`eventid\` string, 
           \`tripid\` string, 
           \`deviceid\` string, 
@@ -417,8 +421,7 @@ export class DataReduction extends Construct {
         LOCATION
           's3://${rawDataBucket.bucketName}/raw/'
         TBLPROPERTIES (
-          'has_encrypted_data'='false', 
-          'transient_lastDdlTime'='1637618754')
+          'has_encrypted_data'='false')
         `,
         WorkGroup: this.tripReductionWorkGroup.ref
       }
@@ -427,6 +430,7 @@ export class DataReduction extends Construct {
     // Delete athena table
     const deleteTableCall: AwsSdkCall = {
       ...queryBaseParameters,
+      physicalResourceId: PhysicalResourceId.of(`${this.tripReductionWorkGroup.ref}_Table`),
       parameters: {
         QueryString: `drop table ${props.AthenaTableName}`,
         WorkGroup: this.tripReductionWorkGroup.ref
@@ -442,6 +446,10 @@ export class DataReduction extends Construct {
           resources: [
             '*'
           ]
+        }),
+        new PolicyStatement({
+          actions: ['glue:*'],
+          resources: ['*']
         }),
         new PolicyStatement({
           actions: [
@@ -463,6 +471,8 @@ export class DataReduction extends Construct {
       onCreate: createTableCall,
       onDelete: deleteTableCall
     });
+
+    athenaTableResource.node.addDependency(athenaDbResource);
 
     // Add dependencies to ensure things are created in order
     [athenaDbResource, athenaTableResource].forEach(resource => {
