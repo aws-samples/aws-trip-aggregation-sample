@@ -62,7 +62,7 @@ If you do have an existing trail and create another one, the aggregation logic w
 
 ### Building and delivering the project
 
-We will be using the CDK directly in Typescript, so there's no need to transpile the infrastructure definition for its utilization. However, the project contains source code for several Lambda functions, **and this code needs to be transpiled to JavaScript** so the Lambda runtime understands it. To build all code for the functions, and get your environment ready for a CDK deploy, run `npm run pre:deploy` in the root folder of the project.
+We will be using the CDK directly in Typescript, so there's no need to transpile the infrastructure definition for its utilization. However, the project contains source code for several Lambda functions, **and this code needs to be transpiled to JavaScript** so the Lambda runtime understands it. To build all code for the functions, and get your environment ready for a CDK deploy, run `npm run build` in the root folder of the project.
 
 Once the code is successfully built, the project is ready for cloud deployment. Simply type `cdk deploy` and respond to any prompt given by the CDK. Deployment should take up to a few minutes, and once finished the solution would be ready to use.
 
