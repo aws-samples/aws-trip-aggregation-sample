@@ -118,11 +118,21 @@ export class TripAggregationStack extends NestedStack {
         'application/json': JSON.stringify({
           TripId: `$input.params('tripId')`
         })
-      }
+      },
+      integrationResponses: [
+        {
+          statusCode: '200',
+        }
+      ]
     }), {
       requestParameters: {
         'method.request.path.tripId': true
-      }
+      },
+      methodResponses: [
+        {
+          statusCode: '200'
+        }
+      ]
     });
   }
 }

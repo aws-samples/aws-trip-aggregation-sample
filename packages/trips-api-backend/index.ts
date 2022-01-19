@@ -142,7 +142,7 @@ export const handler = async (event: ApiEvent) => {
     await dynamodb.update({
       TableName: TripSummariesTableName,
       Key: {
-        TripId: event.TripId
+        trip_id: event.TripId
       },
       UpdateExpression: 'set AggregationExecuted = :value',
       ExpressionAttributeValues: {

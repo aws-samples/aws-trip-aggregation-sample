@@ -405,6 +405,7 @@ export class DataReduction extends Construct {
           \`tripid\` string, 
           \`deviceid\` string, 
           \`eventtime\` int, 
+          \`eventdate\` string, 
           \`eventtype\` string)
         PARTITIONED BY ( 
           \`year\` string, 
@@ -419,7 +420,7 @@ export class DataReduction extends Construct {
         OUTPUTFORMAT 
           'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat'
         LOCATION
-          's3://${rawDataBucket.bucketName}/raw/'
+          's3://${rawDataBucket.bucketName}/'
         TBLPROPERTIES (
           'has_encrypted_data'='false')
         `,
@@ -432,7 +433,7 @@ export class DataReduction extends Construct {
       ...queryBaseParameters,
       physicalResourceId: PhysicalResourceId.of(`${this.tripReductionWorkGroup.ref}_Table`),
       parameters: {
-        QueryString: `drop table ${props.AthenaTableName}`,
+        QueryString: `drop table ${props.AthenaDatabaseName}.${props.AthenaTableName}`,
         WorkGroup: this.tripReductionWorkGroup.ref
       }
     };
