@@ -1,4 +1,4 @@
-import { EventRecord } from 'vehicle-simulator';
+import { EventRecord } from './records';
 import { S3, DynamoDB } from 'aws-sdk'
 import Log from '@dazn/lambda-powertools-logger';
 

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "deploy": "echo 'This package does not deploy. Nothing to do.'",
+    "build": "echo 'This package does not deploy. Nothing to do.'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

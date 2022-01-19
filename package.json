@@ -10,7 +10,7 @@
     "test": "jest",
     "cdk": "cdk",
     "postinstall": "lerna bootstrap",
-    "pre:deploy": "lerna exec --no-bail -- npm run deploy",
+    "pre:deploy": "lerna exec --no-bail -- npm run build",
     "deploy": "npm run pre:deploy && cdk deploy"
   },
   "devDependencies": {
